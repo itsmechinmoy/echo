@@ -47,11 +47,11 @@ Join our communities to stay updated and contribute to the discussion:
 
 ## Contribute
 We welcome contributions, from translations to new features. Join our [Discord server](https://discord.gg/J3WvbBUU8Z) or [Telegram group](https://t.me/echo_app) for inquiries. Pull requests are welcome; check the [open issues](https://github.com/brahmkshatriya/echo/issues) for guidance on major changes.
+- <a href="./CONTRIBUTING.md">Contributing guide</a>
 <details>
 <summary>Weblate Translation Graph</summary>
 <a href="https://hosted.weblate.org/projects/echo/#languages"><img src="https://hosted.weblate.org/widget/echo/app/multi-auto.svg" alt="Translation status" /></a>
 </details>
-<p align="center"><a href="./CODE_OF_CONDUCT.md">Code of conduct</a> · <a href="./CONTRIBUTING.md">Contributing guide</a></p>
 
 ## Acknowledgments
 A heartfelt thank you to everyone who has contributed to the development of Echo.
