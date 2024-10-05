@@ -46,7 +46,7 @@ Join our communities to stay updated and contribute to the discussion:
 <a href="https://t.me/echo_app" style="display: inline-block;"><img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram" height="40" style="vertical-align: middle;"></a>
 
 ## Contribute
-[Code of conduct](./CODE_OF_CONDUCT.md) · [Contributing guide](./CONTRIBUTING.md)
+<centre>[Code of conduct](./CODE_OF_CONDUCT.md) · [Contributing guide](./CONTRIBUTING.md)</centre>
 
 We welcome contributions, from translations to new features. Join our [Discord server](https://discord.gg/J3WvbBUU8Z) or [Telegram group](https://t.me/echo_app) for inquiries. Pull requests are welcome; check the [open issues](https://github.com/brahmkshatriya/echo/issues) for guidance on major changes.
 <details>
