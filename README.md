@@ -48,7 +48,7 @@ Join our communities to stay updated and contribute to the discussion:
 ## Contribute
 [Code of conduct](./CODE_OF_CONDUCT.md) · [Contributing guide](./CONTRIBUTING.md)
 
-We welcome contributions of all kinds, from simple string translations to implementing new features. If you have any questions or want to get involved, please join our [Discord server](https://discord.gg/J3WvbBUU8Z) or [Telegram group](https://t.me/echo_app). Pull requests are welcome; for major changes or issues, please review the [open issues](https://github.com/brahmkshatriya/echo/issues).
+We welcome contributions, from translations to new features. Join our [Discord server](https://discord.gg/J3WvbBUU8Z) or [Telegram group](https://t.me/echo_app) for inquiries. Pull requests are welcome; check the [open issues](https://github.com/brahmkshatriya/echo/issues) for guidance on major changes.
 <details>
 <summary>Weblate Translation Graph</summary>
 <a href="https://hosted.weblate.org/projects/echo/#languages"><img src="https://hosted.weblate.org/widget/echo/app/multi-auto.svg" alt="Translation status" /></a>
