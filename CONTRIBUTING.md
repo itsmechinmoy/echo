@@ -23,7 +23,7 @@ To auto-fix some linting errors, run the `ktlintFormat` Gradle task.
 Translations are done externally via Weblate. See our [weblate project](https://hosted.weblate.org/projects/echo/app/) for more details.
 
 # Forks
-Forks are allowed so long as they abide by [the project's LICENSE](https://github.com/brahmkshatriya/echo/blob/master/LICENSE).
+Forks are allowed so long as they abide by [the project's LICENSE](./LICENSE.md).
 When creating a fork, remember to:
 - To avoid confusion with the main app:
     - Change the app name
