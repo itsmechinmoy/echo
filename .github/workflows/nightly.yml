@@ -3,23 +3,23 @@ name: nightly
 on:
   push:
     branches:
-      - dev
+      - main
   workflow_dispatch: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ github.sha | slice:0,7 }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set COMMIT variable
-        id: set_commit
+      - name: Set VERSION and COMMIT variables
+        id: set_vars
         run: |
+          VERSION="${GITHUB_SHA::7}"
           COMMIT_MSG="${{ github.event.head_commit.message }}"
           COMMIT=${COMMIT_MSG//\'/}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "COMMIT=$COMMIT" >> $GITHUB_ENV
 
       - name: Setup JDK 17
