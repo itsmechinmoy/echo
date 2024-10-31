@@ -10,8 +10,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VERSION: $( echo ${{ github.event.head_commit.id }} | cut -c1-7 )
-      COMMIT: $( sed -E "s/(.*) <.*@.*>/\\1/g;t" <<< "${{ github.event.head_commit.message }}" | jq -Rsa . | tail -c +2 | head -c -2 )
+      VERSION: ${{ github.event.head_commit.id | slice:0,7 }}
+      COMMIT: ${{ github.event.head_commit.message | replace: ' (.*) <.*@.*>', '' | replace: '\n', '' }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
           cache: 'gradle'
 
       - name: Cook KeyStore
-        run:  echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
+        run: echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > "$GITHUB_WORKSPACE/signing-key.jks"
       
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -38,6 +38,23 @@ jobs:
           -Pandroid.injected.signing.key.password=${{ secrets.PASSWORD }}
           cp app/build/outputs/apk/release/app-release.apk app/build/${{ env.VERSION }}.apk
 
+      - name: Create GitHub Release
+        if: ${{ env.SKIP_BUILD != 'true' && github.repository != 'brahmkshatriya/echo' }}
+        uses: softprops/action-gh-release@v2.0.6
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
+          name: "${{ github.ref_name }} build ${{ env.VERSION }}"
+          tag_name: "v${{ env.VERSION }}"
+          body: |
+            New Pretester Build ${{ env.VERSION }} released on branch "${{ github.ref_name }}" :)
+
+            Commits:
+            ${{ env.COMMIT }}
+          prerelease: false
+          make_latest: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -49,10 +66,10 @@ jobs:
           ROLE: ${{ secrets.DISCORD_PING_ROLE_ID }}
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          message=$(echo "<@&${{ env.ROLE }}> **${{ env.VERSION }}**\n${{ env.COMMIT }}")
+          message="<@&${{ env.ROLE }}> **${{ env.VERSION }}**\n${{ env.COMMIT }}"
           curl -F "payload_json={\"content\":\"${message}\"}" \
-          -F "echo_beta=@app/build/${{ env.VERSION }}.apk" \
-          ${{ env.WEBHOOK }}
+               -F "echo_beta=@app/build/${{ env.VERSION }}.apk" \
+               ${{ env.WEBHOOK }}
      
       - name: Upload APK to Telegram
         shell: bash
@@ -60,10 +77,10 @@ jobs:
           BOT_ID: ${{ secrets.TELEGRAM_BOT_ID }}
           CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: |
-          regex='s/[\_\*\[\]\(\)\~\`\>\#\+\-\=\|\{\}\.\!]/\\&/g'
-          message=$(printf "*Nightly Release*\n${{ env.COMMIT }}" | sed -E "$regex")
+          message="*Nightly Release*\n${{ env.COMMIT }}"
+          message=$(echo "$message" | sed -E 's/[_*\[\]()~`>#+=\|\{\}\.!]/\\&/g')
           curl -F "chat_id=${{ env.CHANNEL_ID }}" \
-          -F "document=@app/build/${{ env.VERSION }}.apk" \
-          -F "caption=${message}" \
-          -F "parse_mode=MarkdownV2" \
-          https://api.telegram.org/bot${{ env.BOT_ID }}/sendDocument
+               -F "document=@app/build/${{ env.VERSION }}.apk" \
+               -F "caption=${message}" \
+               -F "parse_mode=MarkdownV2" \
+               https://api.telegram.org/bot${{ env.BOT_ID }}/sendDocument
