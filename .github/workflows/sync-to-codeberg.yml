@@ -25,6 +25,16 @@ jobs:
         git remote add upstream https://github.com/brahmkshatriya/echo.git
         git fetch upstream
 
+    - name: Merge updates from brahmkshatriya/echo
+      run: |
+        git merge upstream/main --allow-unrelated-histories -m "Merge updates from brahmkshatriya/echo" || {
+          echo "Merge conflicts with upstream, resetting to upstream/main and keeping workflow file"
+          git reset --hard upstream/main
+          git checkout main -- .github/workflows/sync-to-codeberg.yml  # Protect workflow file
+          git commit -m "Reset to upstream/main, keeping workflow file"
+        }
+        git push origin main  # Push merged changes to itsmechinmoy/echo on GitHub
+
     - name: Set up SSH for Codeberg and GitLab
       run: |
         mkdir -p ~/.ssh
@@ -33,36 +43,12 @@ jobs:
         ssh-keyscan -t rsa codeberg.org >> ~/.ssh/known_hosts
         ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
 
-    - name: Add GitLab as remote and fetch
-      run: |
-        git remote add gitlab git@gitlab.com:itsmechinmoy/echo.git
-        git fetch gitlab
-
-    - name: Merge updates from all sources
-      run: |
-        # Merge brahmkshatriya/echo
-        git merge upstream/main --allow-unrelated-histories -m "Merge updates from brahmkshatriya/echo" || {
-          echo "Merge conflicts with upstream, resetting to upstream/main"
-          git reset --hard upstream/main
-        }
-        # Merge gitlab/itsmechinmoy/echo
-        git merge gitlab/main --allow-unrelated-histories -m "Merge updates from gitlab/itsmechinmoy/echo" || {
-          echo "Merge conflicts with gitlab, resolving by keeping workflow file and resetting others"
-          git checkout main -- .github/workflows/sync-to-codeberg.yml  # Protect workflow file
-          git checkout gitlab/main -- README.md  # Take GitLab's README.md (or adjust strategy)
-          git add .
-          git commit -m "Resolved GitLab merge conflict by keeping workflow file and GitLab README"
-        }
-
-    - name: Push to GitHub
-      run: |
-        git push origin main  # Push merged changes to itsmechinmoy/echo on GitHub
-
     - name: Push to Codeberg
       run: |
         git remote add codeberg git@codeberg.org:itsmechinmoy/echo.git
-        git push codeberg main  # No --force, to preserve history
+        git push codeberg main --force  # Force to align with GitHub
 
     - name: Push to GitLab
       run: |
-        git push gitlab main  # No --force, to preserve history
+        git remote add gitlab git@gitlab.com:itsmechinmoy/echo.git
+        git push gitlab main --force  # Force to align with GitHub
