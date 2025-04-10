@@ -25,14 +25,6 @@ jobs:
         git remote add upstream https://github.com/brahmkshatriya/echo.git
         git fetch upstream
 
-    - name: Merge updates from brahmkshatriya/echo
-      run: |
-        git merge upstream/main --allow-unrelated-histories -m "Merge updates from brahmkshatriya/echo" || {
-          echo "Merge conflicts detected, resetting to upstream/main"
-          git reset --hard upstream/main
-        }
-        git push origin main  # Push merged or reset changes to itsmechinmoy/echo
-
     - name: Set up SSH for Codeberg and GitLab
       run: |
         mkdir -p ~/.ssh
@@ -41,6 +33,29 @@ jobs:
         ssh-keyscan -t rsa codeberg.org >> ~/.ssh/known_hosts
         ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
 
+    - name: Add GitLab as remote and fetch
+      run: |
+        git remote add gitlab git@gitlab.com:itsmechinmoy/echo.git
+        git fetch gitlab
+
+    - name: Merge updates from all sources
+      run: |
+        # Merge brahmkshatriya/echo
+        git merge upstream/main --allow-unrelated-histories -m "Merge updates from brahmkshatriya/echo" || {
+          echo "Merge conflicts with upstream, resetting to upstream/main"
+          git reset --hard upstream/main
+        }
+        # Merge gitlab/itsmechinmoy/echo
+        git merge gitlab/main --allow-unrelated-histories -m "Merge updates from gitlab/itsmechinmoy/echo" || {
+          echo "Merge conflicts with gitlab, keeping local state and continuing"
+          git checkout main -- .github/workflows/sync-to-codeberg.yml  # Protect workflow file
+          git commit -m "Resolved GitLab merge conflict by keeping local workflow file"
+        }
+
+    - name: Push to GitHub
+      run: |
+        git push origin main  # Push merged changes to itsmechinmoy/echo on GitHub
+
     - name: Push to Codeberg
       run: |
         git remote add codeberg git@codeberg.org:itsmechinmoy/echo.git
@@ -48,5 +63,4 @@ jobs:
 
     - name: Push to GitLab
       run: |
-        git remote add gitlab git@gitlab.com:itsmechinmoy/echo.git
         git push gitlab main  # No --force, to preserve history
