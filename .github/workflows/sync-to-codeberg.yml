@@ -1,0 +1,38 @@
+name: Sync from brahmkshatriya/echo and Push to Codeberg
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour at minute 0
+  workflow_dispatch:    # Allows manual triggering
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout itsmechinmoy/echo
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history
+        token: ${{ secrets.GITHUB_TOKEN }}  # For pushing back to GitHub
+
+    - name: Add brahmkshatriya/echo as remote
+      run: |
+        git remote add upstream https://github.com/brahmkshatriya/echo.git
+        git fetch upstream
+
+    - name: Merge updates from brahmkshatriya/echo
+      run: |
+        git merge upstream/main --allow-unrelated-histories || echo "Merge conflicts detected, continuing with current state"
+        git push origin main  # Push merged changes back to itsmechinmoy/echo
+
+    - name: Set up SSH for Codeberg
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.CODEBERG_SSH_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -t rsa codeberg.org >> ~/.ssh/known_hosts
+
+    - name: Push to Codeberg
+      run: |
+        git remote add codeberg git@codeberg.org:itsmechinmoy/echo.git
+        git push codeberg main --force  # Force push to Codeberg
