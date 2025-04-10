@@ -43,12 +43,19 @@ jobs:
         ssh-keyscan -t rsa codeberg.org >> ~/.ssh/known_hosts
         ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
 
-    - name: Push to Codeberg
+    - name: Prepare and push to Codeberg
       run: |
         git remote add codeberg git@codeberg.org:itsmechinmoy/echo.git
-        git push codeberg main --force  # Force to align with GitHub
+        # Remove the workflow file before pushing
+        git rm -f .github/workflows/sync-to-codeberg.yml || echo "File not present, continuing"
+        git commit -m "Remove workflow file for Codeberg sync" || echo "No changes to commit"
+        git push codeberg main --force  # Force to align with GitHub minus workflow file
 
-    - name: Push to GitLab
+    - name: Prepare and push to GitLab
       run: |
         git remote add gitlab git@gitlab.com:itsmechinmoy/echo.git
-        git push gitlab main --force  # Force to align with GitHub
+        # Remove the workflow file before pushing (reset state first to avoid duplicate commit)
+        git reset --hard origin/main  # Reset to GitHub state
+        git rm -f .github/workflows/sync-to-codeberg.yml || echo "File not present, continuing"
+        git commit -m "Remove workflow file for GitLab sync" || echo "No changes to commit"
+        git push gitlab main --force  # Force to align with GitHub minus workflow file
