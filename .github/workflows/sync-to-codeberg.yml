@@ -1,4 +1,4 @@
-name: Sync from brahmkshatriya/echo and Push to Codeberg
+name: Sync from brahmkshatriya/echo and Push to Codeberg and GitLab
 
 on:
   schedule:
@@ -33,14 +33,20 @@ jobs:
         }
         git push origin main  # Push merged or reset changes to itsmechinmoy/echo
 
-    - name: Set up SSH for Codeberg
+    - name: Set up SSH for Codeberg and GitLab
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.CODEBERG_SSH_KEY }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -t rsa codeberg.org >> ~/.ssh/known_hosts
+        ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
 
     - name: Push to Codeberg
       run: |
         git remote add codeberg git@codeberg.org:itsmechinmoy/echo.git
         git push codeberg main  # No --force, to preserve history
+
+    - name: Push to GitLab
+      run: |
+        git remote add gitlab git@gitlab.com:itsmechinmoy/echo.git
+        git push gitlab main  # No --force, to preserve history
