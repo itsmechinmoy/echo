@@ -47,9 +47,11 @@ jobs:
         }
         # Merge gitlab/itsmechinmoy/echo
         git merge gitlab/main --allow-unrelated-histories -m "Merge updates from gitlab/itsmechinmoy/echo" || {
-          echo "Merge conflicts with gitlab, keeping local state and continuing"
+          echo "Merge conflicts with gitlab, resolving by keeping workflow file and resetting others"
           git checkout main -- .github/workflows/sync-to-codeberg.yml  # Protect workflow file
-          git commit -m "Resolved GitLab merge conflict by keeping local workflow file"
+          git checkout gitlab/main -- README.md  # Take GitLab's README.md (or adjust strategy)
+          git add .
+          git commit -m "Resolved GitLab merge conflict by keeping workflow file and GitLab README"
         }
 
     - name: Push to GitHub
