@@ -1,0 +1,70 @@
+name: Sync from brahmkshatriya/echo and Push to Codeberg and GitLab
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour
+  workflow_dispatch:    # Allows manual triggering
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout itsmechinmoy/echo
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history
+        token: ${{ secrets.GITHUB_TOKEN }}  # For pushing back to GitHub
+
+    - name: Configure Git identity
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Add brahmkshatriya/echo as remote
+      run: |
+        git remote add upstream https://github.com/brahmkshatriya/echo.git
+        git fetch upstream
+
+    - name: Merge updates from brahmkshatriya/echo
+      run: |
+        git merge upstream/main --allow-unrelated-histories -m "Merge updates from brahmkshatriya/echo" || {
+          echo "Merge conflicts with upstream, resetting to upstream/main and keeping workflow file"
+          git reset --hard upstream/main
+          git checkout main -- .github/workflows/sync-to-codeberg.yml  # Protect workflow file
+          git commit -m "Reset to upstream/main, keeping workflow file"
+        }
+        git push origin main  # Push merged changes to itsmechinmoy/echo on GitHub
+
+    - name: Set up SSH for Codeberg and GitLab
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.CODEBERG_SSH_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -t rsa codeberg.org >> ~/.ssh/known_hosts
+        ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
+
+    - name: Prepare and push to Codeberg
+      run: |
+        git remote add codeberg git@codeberg.org:itsmechinmoy/echo.git
+        # Remove the workflow file before pushing
+        git rm -f .github/workflows/sync-to-codeberg.yml || echo "File not present, continuing"
+        git commit -m "Remove workflow file for Codeberg sync" || echo "No changes to commit"
+        git push codeberg main --force  # Force to align with GitHub minus workflow file
+
+    - name: Prepare and push to GitLab
+      run: |
+        git remote add gitlab git@gitlab.com:itsmechinmoy/echo.git
+        git fetch gitlab
+        # Reset to GitHub state
+        git reset --hard origin/main
+        # Remove the workflow file
+        git rm -f .github/workflows/sync-to-codeberg.yml || echo "File not present, continuing"
+        git commit -m "Remove workflow file for GitLab sync" || echo "No changes to commit"
+        # Merge gitlab/main to avoid conflicts
+        git merge gitlab/main --allow-unrelated-histories -m "Merge gitlab/itsmechinmoy/echo for sync" || {
+          echo "Merge conflicts with gitlab, resolving by keeping GitHub state"
+          git checkout origin/main -- .  # Prefer GitHub's files
+          git add .
+          git commit -m "Resolved GitLab merge conflict by keeping GitHub state"
+        }
+        git push gitlab main  # Regular push, no force
